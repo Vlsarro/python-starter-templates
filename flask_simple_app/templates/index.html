@@ -6,10 +6,24 @@
 {% block body %}
 <div class="container" style="text-align: center;">
 
-    <div class="form-group">
-        <input id="fileupload" type="file" name="fileupload" accept="image/*" />
-        <button id="uploadBtn" class="btn btn-primary btn-lg"> Upload </button>
-    </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method=POST enctype=multipart/form-data>
+        {{ form.csrf_token }}
+        {% if form.csrf_token.errors %}
+            <div class="alert alert-warning" role="alert">You have submitted an invalid CSRF token</div>
+        {% endif %}
+        <div class="form-group">
+            <input id="fileupload" type="file" name="photo" accept="image/*" required aria-required="true"/>
+            <button id="uploadBtn" class="btn btn-primary btn-lg"> Upload </button>
+        </div>
+    </form>
 
 </div>
 {% endblock %}

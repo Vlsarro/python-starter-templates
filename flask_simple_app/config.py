@@ -11,6 +11,8 @@ TEMPLATES_PATH = os.path.join(ROOT_PATH, 'templates')
 STATIC_PATH = os.path.join(ROOT_PATH, 'static')
 UPLOAD_PATH = os.path.join(ROOT_PATH, 'uploads')
 
+USE_SSL = False
+
 # Local certificate generation
 # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
 # USE_SSL_CERT = True
