@@ -1,4 +1,4 @@
-import config
+from config import app_settings
 from flask import Flask, render_template, request, flash
 from flask_log import Logging
 from flask_uploads import configure_uploads, UploadSet, IMAGES
@@ -11,13 +11,13 @@ photos = UploadSet('photos', IMAGES)
 app = Flask(
     __name__,
     static_url_path='',
-    static_folder=config.STATIC_PATH,
-    template_folder=config.TEMPLATES_PATH
+    static_folder=app_settings.static_path,
+    template_folder=app_settings.templates_path
 )
 flask_log = Logging(app)
 
-app.config['UPLOADED_PHOTOS_DEST'] = config.UPLOAD_PATH
-app.secret_key = config.SECRET_KEY
+app.config['UPLOADED_PHOTOS_DEST'] = app_settings.upload_path
+app.secret_key = app_settings.secret_key
 
 configure_uploads(app, photos)
 
@@ -42,14 +42,14 @@ def index():
 
 if __name__ == '__main__':
     app_params = {
-        'debug': config.DEBUG,
+        'debug': app_settings.debug,
         'threaded': True,
-        'host': config.SITE_HOST,
-        'port': config.PORT
+        'host': app_settings.site_host,
+        'port': app_settings.port
     }
-    if config.USE_SSL:
-        if config.USE_SSL_CERT:
-            app_params['ssl_context'] = (f'{config.ROOT_PATH}/cert.pem', f'{config.ROOT_PATH}/key.pem')
+    if app_settings.use_ssl:
+        if app_settings.use_ssl_cert:
+            app_params['ssl_context'] = (f'{app_settings.root_path}/cert.pem', f'{app_settings.root_path}/key.pem')
         else:
             app_params['ssl_context'] = 'adhoc'
     app.run(**app_params)

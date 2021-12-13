@@ -1,25 +1,32 @@
 import os
+from pydantic import BaseSettings, Field
 
 
-SITE_HOST = os.environ.get('flask_site_host') or '0.0.0.0'
-PORT = os.environ.get('flask_site_port') or 5000
-DEBUG = False
-ENCODING = 'utf-8'
-ROOT_PATH = os.path.dirname(__file__)
+__all__ = ('app_settings',)
 
-TEMPLATES_PATH = os.path.join(ROOT_PATH, 'templates')
-STATIC_PATH = os.path.join(ROOT_PATH, 'static')
-UPLOAD_PATH = os.path.join(ROOT_PATH, 'uploads')
 
-USE_SSL = False
+class Settings(BaseSettings):
+    root_path: str = os.path.dirname(__file__)
+    templates_path: str = os.path.join(root_path, 'templates')
+    static_path: str = os.path.join(root_path, 'static')
+    upload_path: str = os.path.join(root_path, 'uploads')
 
-# Local certificate generation
-# openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
-# USE_SSL_CERT = True
-USE_SSL_CERT = False
+    site_host: str = Field(default='0.0.0.0', env='flask_site_host')
+    port: int = Field(default=5000, env='flask_site_port')
+    debug: bool = Field(default=False, env='flask_debug')
+    encoding: str = Field(default='utf-8', env='flask_encoding')
+    use_ssl: bool = Field(default=False, env='flask_use_ssl')
 
-env_secret_key = os.environ.get('flask_secret_key')
-if env_secret_key:
-    SECRET_KEY = env_secret_key.encode(ENCODING)
-else:
-    SECRET_KEY = b'not_really_a_secret'
+    # Local certificate generation
+    # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+    use_ssl_cert: bool = Field(default=False, env='flask_use_ssl_cert')
+
+    # FIXME: https://pydantic-docs.helpmanual.io/usage/settings/#use-case-docker-secrets
+    secret_key: bytes = Field(default=b'default_key', env='flask_secret_key')
+
+    class Config:
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
+
+
+app_settings = Settings()
