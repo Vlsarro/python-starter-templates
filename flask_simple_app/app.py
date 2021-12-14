@@ -1,5 +1,5 @@
 from config import app_settings
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, flash, Blueprint
 from flask_log import Logging
 from flask_uploads import configure_uploads, UploadSet, IMAGES
 from flask_wtf import FlaskForm
@@ -7,19 +7,6 @@ from flask_wtf.file import FileField, FileAllowed, FileRequired
 
 
 photos = UploadSet('photos', IMAGES)
-
-app = Flask(
-    __name__,
-    static_url_path='',
-    static_folder=app_settings.static_path,
-    template_folder=app_settings.templates_path
-)
-flask_log = Logging(app)
-
-app.config['UPLOADED_PHOTOS_DEST'] = app_settings.upload_path
-app.secret_key = app_settings.secret_key
-
-configure_uploads(app, photos)
 
 
 class UploadForm(FlaskForm):
@@ -29,7 +16,10 @@ class UploadForm(FlaskForm):
     ])
 
 
-@app.route('/', methods=['GET', 'POST'])
+bp = Blueprint('bp', __name__, template_folder=app_settings.templates_path, static_folder=app_settings.static_path)
+
+
+@bp.route('/', methods=['GET', 'POST'])
 def index():
     form = UploadForm()
 
@@ -40,16 +30,30 @@ def index():
     return render_template('index.html', form=form)
 
 
+def create_app() -> Flask:
+    app = Flask(
+        __name__,
+        static_url_path='',
+        static_folder=app_settings.static_path,
+        template_folder=app_settings.templates_path
+    )
+    Logging(app)
+
+    app.config['UPLOADED_PHOTOS_DEST'] = app_settings.upload_path
+    app.config['DEBUG'] = app_settings.debug
+    app.config['SERVER_NAME'] = f'{app_settings.site_host}:{app_settings.port}'
+    app.secret_key = app_settings.secret_key
+
+    configure_uploads(app, photos)
+
+    app.register_blueprint(bp)
+
+    return app
+
+
 if __name__ == '__main__':
-    app_params = {
-        'debug': app_settings.debug,
-        'threaded': True,
-        'host': app_settings.site_host,
-        'port': app_settings.port
-    }
+    fapp = create_app()
     if app_settings.use_ssl:
-        if app_settings.use_ssl_cert:
-            app_params['ssl_context'] = (f'{app_settings.root_path}/cert.pem', f'{app_settings.root_path}/key.pem')
-        else:
-            app_params['ssl_context'] = 'adhoc'
-    app.run(**app_params)
+        fapp.run(ssl_context=(f'{app_settings.root_path}/localhost.crt', f'{app_settings.root_path}/localhost.key'))
+    else:
+        fapp.run()
